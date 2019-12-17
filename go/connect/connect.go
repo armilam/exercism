@@ -105,26 +105,19 @@ func WinsFromPath(position *Position, path []*Position, player string, winCheck 
 		return false
 	}
 
-	// Check whether this position represents a win.
+	// Check whether this position represents a win. If so, return true.
 	if winCheck(position) {
 		return true
 	}
 
-	// Recursively continue finding the path.
-	if WinsFromPath((*position).Left, append(path, position), player, winCheck) {
-		return true
-	} else if WinsFromPath((*position).TopLeft, append(path, position), player, winCheck) {
-		return true
-	} else if WinsFromPath((*position).TopRight, append(path, position), player, winCheck) {
-		return true
-	} else if WinsFromPath((*position).Right, append(path, position), player, winCheck) {
-		return true
-	} else if WinsFromPath((*position).BottomRight, append(path, position), player, winCheck) {
-		return true
-	} else if WinsFromPath((*position).BottomLeft, append(path, position), player, winCheck) {
-		return true
+	// Recursively continue following the path.
+	for _, nextPosition := range []*Position{(*position).Left, (*position).TopLeft, (*position).TopRight, (*position).Right, (*position).BottomRight, (*position).BottomLeft} {
+		if WinsFromPath(nextPosition, append(path, position), player, winCheck) {
+			return true
+		}
 	}
 
+	// No neighboring Position leads to a win.
 	return false
 }
 
