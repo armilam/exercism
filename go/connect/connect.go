@@ -22,6 +22,9 @@ type Board struct {
 	Positions [][]*Position
 }
 
+// WinCheck is a type of function that tests whether the player has won.
+type WinCheck func(position *Position) bool
+
 // ResultOf determines the winner of the connect game, given a board represented by an array
 // of strings, each of which contains an O, X, or a . for each position.
 func ResultOf(boardRows []string) (string, error) {
@@ -45,52 +48,16 @@ func Xwins(board Board) bool {
 	// the board. If not, keep going down the left side of the
 	// board to see if there is a different winning path.
 	for startingPosition != nil {
-		if XwinsFromPath(startingPosition, []*Position{}) {
+		// X wins when it reaches the right side.
+		xWinCheck := func(position *Position) bool {
+			return (*position).Right == nil
+		}
+
+		if WinsFromPath(startingPosition, []*Position{}, "X", xWinCheck) {
 			return true
 		}
 
 		startingPosition = (*startingPosition).BottomRight
-	}
-
-	return false
-}
-
-// XwinsFromPath determines whether X wins the connect game by recursively following paths of
-// Positions held by X.
-func XwinsFromPath(position *Position, path []*Position) bool {
-	// If there is nothing here, we are off the board. Return false.
-	if position == nil {
-		return false
-	}
-
-	// Detect a circular path. If we've already been here, return false.
-	if IsCircularPath(position, path) {
-		return false
-	}
-
-	// If this position is not occupied by an X, the path has ended. Return false.
-	if (*position).Player != "X" {
-		return false
-	}
-
-	// If we are on the right side of the board with an X, then X won. Return true.
-	if (*position).Right == nil {
-		return true
-	}
-
-	// Recursively continue finding the path.
-	if XwinsFromPath((*position).Left, append(path, position)) {
-		return true
-	} else if XwinsFromPath((*position).TopLeft, append(path, position)) {
-		return true
-	} else if XwinsFromPath((*position).TopRight, append(path, position)) {
-		return true
-	} else if XwinsFromPath((*position).Right, append(path, position)) {
-		return true
-	} else if XwinsFromPath((*position).BottomRight, append(path, position)) {
-		return true
-	} else if XwinsFromPath((*position).BottomLeft, append(path, position)) {
-		return true
 	}
 
 	return false
@@ -105,7 +72,12 @@ func Owins(board Board) bool {
 	// the board. If not, keep going across the top side of the
 	// board to see if there is a different winning path.
 	for startingPosition != nil {
-		if OwinsFromPath(startingPosition, []*Position{}) {
+		// O wins when it reaches the bottom row.
+		oWinCheck := func(position *Position) bool {
+			return (*position).BottomLeft == nil && (*position).BottomRight == nil
+		}
+
+		if WinsFromPath(startingPosition, []*Position{}, "O", oWinCheck) {
 			return true
 		}
 
@@ -115,9 +87,9 @@ func Owins(board Board) bool {
 	return false
 }
 
-// OwinsFromPath determines whether O wins the connect game by recursively following paths of
-// Positions held by O.
-func OwinsFromPath(position *Position, path []*Position) bool {
+// WinsFromPath determines whether player wins the connect game by recursively following paths of
+// Positions held by that player.
+func WinsFromPath(position *Position, path []*Position, player string, winCheck WinCheck) bool {
 	// If there is nothing here, we are off the board. Return false.
 	if position == nil {
 		return false
@@ -128,28 +100,28 @@ func OwinsFromPath(position *Position, path []*Position) bool {
 		return false
 	}
 
-	// If this position is not occupied by an O, the path has ended. Return false.
-	if (*position).Player != "O" {
+	// If this position is not occupied by player, the path has ended. Return false.
+	if (*position).Player != player {
 		return false
 	}
 
-	// If we are on the bottom side of the board with an O, then O won. Return true.
-	if (*position).BottomLeft == nil && (*position).BottomRight == nil {
+	// Check whether this position represents a win.
+	if winCheck(position) {
 		return true
 	}
 
 	// Recursively continue finding the path.
-	if OwinsFromPath((*position).Left, append(path, position)) {
+	if WinsFromPath((*position).Left, append(path, position), player, winCheck) {
 		return true
-	} else if OwinsFromPath((*position).TopLeft, append(path, position)) {
+	} else if WinsFromPath((*position).TopLeft, append(path, position), player, winCheck) {
 		return true
-	} else if OwinsFromPath((*position).TopRight, append(path, position)) {
+	} else if WinsFromPath((*position).TopRight, append(path, position), player, winCheck) {
 		return true
-	} else if OwinsFromPath((*position).Right, append(path, position)) {
+	} else if WinsFromPath((*position).Right, append(path, position), player, winCheck) {
 		return true
-	} else if OwinsFromPath((*position).BottomRight, append(path, position)) {
+	} else if WinsFromPath((*position).BottomRight, append(path, position), player, winCheck) {
 		return true
-	} else if OwinsFromPath((*position).BottomLeft, append(path, position)) {
+	} else if WinsFromPath((*position).BottomLeft, append(path, position), player, winCheck) {
 		return true
 	}
 
