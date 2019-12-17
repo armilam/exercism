@@ -1,9 +1,12 @@
+// Package connect containts functions to determine the winner of a game of connect.
 package connect
 
 import (
 	"strings"
 )
 
+// A Position represents a single position within a connect game and contains a reference to
+// each of that Position's neighboring Positions.
 type Position struct {
 	Player      string
 	Left        *Position
@@ -14,10 +17,13 @@ type Position struct {
 	BottomLeft  *Position
 }
 
+// Board is an array of arrays of positions, representing a game of connect.
 type Board struct {
 	Positions [][]*Position
 }
 
+// ResultOf determines the winner of the connect game, given a board represented by an array
+// of strings, each of which contains an O, X, or a . for each position.
 func ResultOf(boardRows []string) (string, error) {
 	board := ParseBoard(boardRows)
 
@@ -30,6 +36,7 @@ func ResultOf(boardRows []string) (string, error) {
 	}
 }
 
+// Xwins determines whether X wins the game, given a Board.
 func Xwins(board Board) bool {
 	startingPosition := &(*board.Positions[0][0])
 
@@ -40,14 +47,16 @@ func Xwins(board Board) bool {
 	for startingPosition != nil {
 		if XwinsFromPath(startingPosition, []*Position{}) {
 			return true
-		} else {
-			startingPosition = (*startingPosition).BottomRight
 		}
+
+		startingPosition = (*startingPosition).BottomRight
 	}
 
 	return false
 }
 
+// XwinsFromPath determines whether X wins the connect game by recursively following paths of
+// Positions held by X.
 func XwinsFromPath(position *Position, path []*Position) bool {
 	// If there is nothing here, we are off the board. Return false.
 	if position == nil {
@@ -87,6 +96,7 @@ func XwinsFromPath(position *Position, path []*Position) bool {
 	return false
 }
 
+// Owins determines whether O wins the game, given a Board.
 func Owins(board Board) bool {
 	startingPosition := &(*board.Positions[0][0])
 
@@ -97,16 +107,16 @@ func Owins(board Board) bool {
 	for startingPosition != nil {
 		if OwinsFromPath(startingPosition, []*Position{}) {
 			return true
-		} else {
-			startingPosition = (*startingPosition).Right
 		}
+
+		startingPosition = (*startingPosition).Right
 	}
 
 	return false
 }
 
-// OwinsFromPath is a recursive function which determines whether O has a path
-// to the bottom of the board from position, using path to ens
+// OwinsFromPath determines whether O wins the connect game by recursively following paths of
+// Positions held by O.
 func OwinsFromPath(position *Position, path []*Position) bool {
 	// If there is nothing here, we are off the board. Return false.
 	if position == nil {
